@@ -1,0 +1,78 @@
+# Fill revision and artifact_sha256 from your installed artifacts. Validation
+# deliberately rejects these placeholders. Copy this file for your own profiles.
+corpus = "../data/starter_corpus.jsonl"
+dataset = "../data/starter_cases.jsonl"
+calibration = "../data/calibration_draft.jsonl"
+artifacts = "../artifacts/hybrid-local"
+candidate_k = 20
+cutoff = 5
+index_bits = 4
+repeats = 1
+allow_truncation = false
+
+[[embeddings]]
+name = "embeddinggemma-q8"
+model = "embeddinggemma-300m-q8"
+revision = "PIN_GGUF_REVISION"
+artifact_sha256 = "REPLACE_WITH_GGUF_FILE_SHA256"
+url = "http://127.0.0.1:18081/v1"
+dimensions = 768
+query_prefix = "task: search result | query: "
+document_prefix = "title: none | text: "
+quantization = "Q8_0"
+
+[answer]
+name = "answer-local"
+model = "YOUR_ODIA_CAPABLE_ANSWER_MODEL"
+revision = "PIN_MODEL_REVISION"
+artifact_sha256 = "REPLACE_WITH_GGUF_FILE_SHA256"
+url = "http://127.0.0.1:18085/v1"
+context_tokens = 8192
+max_output_tokens = 1024
+
+[judge]
+name = "judge-local"
+model = "YOUR_ODIA_CAPABLE_JUDGE_MODEL"
+revision = "PIN_MODEL_REVISION"
+artifact_sha256 = "REPLACE_WITH_GGUF_FILE_SHA256"
+url = "http://127.0.0.1:18086/v1"
+context_tokens = 16384
+max_output_tokens = 2048
+
+[llm_reranker]
+name = "llm-reranker-local"
+model = "YOUR_ODIA_CAPABLE_RERANKING_MODEL"
+revision = "PIN_MODEL_AND_RUNTIME_REVISION"
+artifact_sha256 = "REPLACE_WITH_GGUF_FILE_SHA256"
+url = "http://127.0.0.1:18087/v1"
+context_tokens = 16384
+max_output_tokens = 2048
+
+[bm25]
+k1 = 1.2
+b = 0.75
+top_k = 20
+
+[rrf]
+rank_constant = 60.0
+top_k = 20
+
+[[pipelines]]
+name = "dense"
+retrieval = "dense"
+embedding = "embeddinggemma-q8"
+
+[[pipelines]]
+name = "bm25"
+retrieval = "bm25"
+
+[[pipelines]]
+name = "hybrid-rrf"
+retrieval = "hybrid_rrf"
+embedding = "embeddinggemma-q8"
+
+[[pipelines]]
+name = "hybrid-llm"
+retrieval = "hybrid_rrf"
+embedding = "embeddinggemma-q8"
+reranker = "llm-reranker-local"

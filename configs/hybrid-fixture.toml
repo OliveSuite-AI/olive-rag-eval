@@ -1,0 +1,76 @@
+corpus = "../data/starter_corpus.jsonl"
+dataset = "../data/starter_cases.jsonl"
+calibration = "../data/calibration_draft.jsonl"
+artifacts = "../artifacts/hybrid-fixture"
+fixture = true
+fixture_stdio = "../services/runtime.py"
+candidate_k = 20
+cutoff = 5
+repeats = 1
+
+[[embeddings]]
+name = "embeddinggemma-q8"
+model = "fixture-embeddinggemma"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+dimensions = 768
+query_prefix = "task: search result | query: "
+document_prefix = "title: none | text: "
+quantization = "synthetic"
+
+[answer]
+name = "answer-local"
+model = "fixture-chat"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+context_tokens = 16384
+max_output_tokens = 1024
+
+[judge]
+name = "judge-local"
+model = "fixture-chat"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+context_tokens = 16384
+max_output_tokens = 2048
+
+[llm_reranker]
+name = "llm-reranker-local"
+model = "fixture-rerank-llm"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+context_tokens = 16384
+max_output_tokens = 2048
+
+[bm25]
+k1 = 1.2
+b = 0.75
+top_k = 20
+
+[rrf]
+rank_constant = 60.0
+top_k = 20
+
+[[pipelines]]
+name = "dense"
+retrieval = "dense"
+embedding = "embeddinggemma-q8"
+
+[[pipelines]]
+name = "bm25"
+retrieval = "bm25"
+
+[[pipelines]]
+name = "hybrid-rrf"
+retrieval = "hybrid_rrf"
+embedding = "embeddinggemma-q8"
+
+[[pipelines]]
+name = "hybrid-llm"
+retrieval = "hybrid_rrf"
+embedding = "embeddinggemma-q8"
+reranker = "llm-reranker-local"

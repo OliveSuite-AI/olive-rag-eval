@@ -1,0 +1,61 @@
+corpus = "corpus.jsonl"
+dataset = "cases.jsonl"
+calibration = "calibration.jsonl"
+artifacts = "artifacts"
+fixture = true
+fixture_stdio = __RUNTIME__
+python_executable = __PYTHON__
+candidate_k = 20
+cutoff = 5
+repeats = 1
+
+[[embeddings]]
+name = "embeddinggemma-q8"
+model = "fixture-embeddinggemma"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+dimensions = 768
+query_prefix = "task: search result | query: "
+document_prefix = "title: none | text: "
+quantization = "synthetic"
+
+[[embeddings]]
+name = "minilm"
+model = "fixture-minilm"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+dimensions = 384
+
+[[rerankers]]
+name = "bge-m3"
+model = "fixture-bge"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+
+[[rerankers]]
+name = "laya-multilingual"
+model = "fixture-laya"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+
+[answer]
+name = "answer-local"
+model = "fixture-chat"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+context_tokens = 16384
+max_output_tokens = 1024
+
+[judge]
+name = "judge-local"
+model = "fixture-chat"
+revision = "fixture-v1"
+artifact_sha256 = "fixture"
+url = "http://127.0.0.1:18080/v1"
+context_tokens = 16384
+max_output_tokens = 2048

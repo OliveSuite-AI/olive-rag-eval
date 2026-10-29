@@ -1,0 +1,11 @@
+/target/
+/artifacts/
+/.venv*/
+__pycache__/
+*.pyc
+.env
+/dist/
+*.egg-info/
+.env.*
+.pypirc
+.DS_Store

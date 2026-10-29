@@ -1,0 +1,9 @@
+olive-rag-eval code is distributed under the MIT License.
+
+The packaged synthetic astronomy examples contain authored factual paraphrases
+and unreviewed Odia translations, with attribution to NASA source URLs in their
+corpus records and provenance manifest. They are draft examples, not a validated
+Odia benchmark. Original source snapshots remain in the repository and are not
+included in wheels. Model weights are not included; their publishers' licenses
+and access conditions apply separately. Rust dependency licenses are available
+in their respective upstream packages.

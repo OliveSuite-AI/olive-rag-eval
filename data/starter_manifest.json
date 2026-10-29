@@ -1,0 +1,23 @@
+{
+  "review_status": "draft",
+  "description": "Authored English paraphrases and unreviewed Odia translations of saved NASA facts. Page means authored corpus section. Not extracted PDF page numbers.",
+  "semantic_cases": 10,
+  "query_instances": 60,
+  "sources": [
+    {
+      "url": "https://science.nasa.gov/earth/facts/",
+      "snapshot": "sources/earth.html",
+      "sha256": "0c25f46ca4a767e17b9cbc88a83840eacdad1c6f8aa34353a8d4fb5c32101e8a"
+    },
+    {
+      "url": "https://science.nasa.gov/moon/facts/",
+      "snapshot": "sources/moon.html",
+      "sha256": "700655db10eb97e3286af83144d3344106c39f881ff073c5767aaca95cdca7fa"
+    },
+    {
+      "url": "https://science.nasa.gov/sun/facts/",
+      "snapshot": "sources/sun.html",
+      "sha256": "53b6126ba51a656d526de3f5006bce3133802ecba6473e0d4e004fb9dd8b0311"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+[build-system]
+requires = ["maturin>=1.9,<2"]
+build-backend = "maturin"
+
+[project]
+name = "olive-rag-eval"
+dynamic = ["version"]
+description = "Native Rust RAG evaluation with Odia-first multilingual, BM25/RRF and local reranking support"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
+keywords = ["rag", "evaluation", "rust", "odia", "multilingual", "reranking"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Rust",
+    "Operating System :: MacOS", "Operating System :: Microsoft :: Windows", "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/OliveSuite-AI/olive-rag-eval"
+Repository = "https://github.com/OliveSuite-AI/olive-rag-eval"
+Documentation = "https://github.com/OliveSuite-AI/olive-rag-eval#readme"
+Issues = "https://github.com/OliveSuite-AI/olive-rag-eval/issues"
+
+[project.scripts]
+olive-rag-eval = "olive_rag_eval.cli:main"
+
+[tool.maturin]
+manifest-path = "bindings/python/Cargo.toml"
+python-source = "python"
+module-name = "olive_rag_eval._native"
+bindings = "pyo3"
+strip = true
+include = [
+    { path = "src/**", format = "sdist" },
+    { path = "Cargo.toml", format = "sdist" },
+    { path = "Cargo.lock", format = "sdist" },
+    { path = "bindings/python/**", format = "sdist" },
+    { path = "python/olive_rag_eval/**", format = ["sdist", "wheel"] },
+    { path = "README.md", format = "sdist" },
+    { path = "FRAMEWORK.md", format = "sdist" },
+    { path = "VALIDATION.md", format = "sdist" },
+    { path = "RELEASING.md", format = "sdist" },
+    { path = "CHANGELOG.md", format = "sdist" },
+    { path = "PYTHON.md", format = "sdist" },
+]
+exclude = ["artifacts/**", "target/**", "dist/**", "data/sources/**", ".venv*/**", "**/__pycache__/**", "**/*.pyc"]

@@ -1,0 +1,2 @@
+# Use a separate environment from requirements-models.txt.
+laya==0.4.18

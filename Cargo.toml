@@ -1,0 +1,47 @@
+[package]
+name = "rag-eval"
+version.workspace = true
+edition = "2024"
+rust-version = "1.98"
+description = "Local, Odia-first multilingual RAG evaluation"
+license = "MIT"
+repository = "https://github.com/OliveSuite-AI/olive-rag-eval"
+include = ["Cargo.toml", "Cargo.lock", "src/**", "README.md", "PYTHON.md", "FRAMEWORK.md", "VALIDATION.md", "RELEASING.md", "CHANGELOG.md", "LICENSE", "NOTICE", "tests/**", "configs/**", "data/*.jsonl", "data/*.json", "services/runtime.py", "services/test_runtime.py", "services/requirements*.txt", "scripts/*.py"]
+
+[workspace]
+members = ["bindings/python"]
+default-members = ["."]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+clap = { version = "4", features = ["derive"] }
+csv = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+toml = "0.8"
+turbovec = "1"
+unicode-normalization = "0.1"
+unicode-segmentation = "=1.13.3"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Storage_FileSystem", "Win32_Foundation"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.test]
+debug = 0
+incremental = false

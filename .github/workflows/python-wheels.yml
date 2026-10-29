@@ -1,0 +1,148 @@
+name: Python wheels
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Upload verified artifacts to PyPI (requires Trusted Publisher and protected pypi environment)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.98.1
+          components: rustfmt, clippy
+      - run: cargo fmt --all --check
+      - run: cargo clippy --locked --workspace --all-targets -- -D warnings
+      - run: cargo test --locked
+      - run: python -m unittest discover -s services -p 'test_*.py' -v
+      - run: python scripts/sync_python_assets.py --check
+
+  wheels:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {runner: macos-14, target: aarch64-apple-darwin, name: mac-arm64}
+          - {runner: macos-15-intel, target: x86_64-apple-darwin, name: mac-x64}
+          - {runner: ubuntu-24.04, target: x86_64-unknown-linux-gnu, name: linux-x64}
+          - {runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, name: linux-arm64}
+          - {runner: windows-2022, target: x86_64-pc-windows-msvc, name: windows-x64}
+    runs-on: ${{ matrix.runner }}
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '11.0'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.98.1
+      - uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: '1.16.0'
+          rust-toolchain: 1.98.1
+          command: build
+          target: ${{ matrix.target }}
+          manylinux: '2014'
+          args: --release --locked --out dist --compatibility pypi
+      - name: Validate wheel
+        shell: bash
+        run: python scripts/check_python_dist.py dist/*.whl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.name }}
+          path: dist/*.whl
+
+  installed:
+    needs: wheels
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.14']
+        platform:
+          - {runner: macos-14, name: mac-arm64}
+          - {runner: macos-15-intel, name: mac-x64}
+          - {runner: ubuntu-24.04, name: linux-x64}
+          - {runner: ubuntu-24.04-arm, name: linux-arm64}
+          - {runner: windows-2022, name: windows-x64}
+    runs-on: ${{ matrix.platform.runner }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheel-${{ matrix.platform.name }}
+          path: wheelhouse
+      - name: Fresh pip and uv environments outside checkout
+        shell: bash
+        run: |
+          for wheel in wheelhouse/*.whl; do
+            python scripts/test_wheel.py --wheel "$wheel" --installer pip
+            python scripts/test_wheel.py --wheel "$wheel" --installer uv
+          done
+
+  sdist:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.98.1
+      - run: python -m pip install maturin==1.16.0 build twine
+      - run: maturin sdist --out dist
+      - name: Check and rebuild source distribution
+        shell: bash
+        run: |
+          python scripts/check_python_dist.py dist/*.tar.gz
+          python -m twine check --strict dist/*.tar.gz
+          python scripts/test_sdist.py dist/*.tar.gz --output "$RUNNER_TEMP/sdist-wheels"
+          python scripts/test_wheel.py --wheel "$RUNNER_TEMP"/sdist-wheels/*.whl --installer pip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  publish:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
+    needs: [rust, installed, sdist]
+    runs-on: ubuntu-24.04
+    environment:
+      name: pypi
+      url: https://pypi.org/project/olive-rag-eval/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          path: dist
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true
